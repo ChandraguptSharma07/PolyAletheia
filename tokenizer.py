@@ -1,7 +1,7 @@
 # setup tokenizer for polymer bert
 from transformers import AutoTokenizer
 
-MODEL_NAME = "answerdotai/ModernBERT-base"
+MODEL_NAME = "seyonec/ChemBERTa-zinc-base-v1"
 
 def get_tokenizer():
     # load base tokenizer
