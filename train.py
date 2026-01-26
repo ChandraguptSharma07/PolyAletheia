@@ -6,6 +6,7 @@ from transformers import get_linear_schedule_with_warmup
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import wandb
 from model import PolymerPredictor
 from tokenizer import get_tokenizer
 
@@ -110,7 +111,6 @@ def validate(model, loader, device):
 if __name__ == "__main__":
     # simple training run
     # wandb init
-    import wandb
     wandb.init(project="polyaletheia", mode="online") # or disabled for debugging
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
