@@ -6,7 +6,8 @@ class PolymerPredictor(nn.Module):
     def __init__(self, model_name="seyonec/ChemBERTa-zinc-base-v1", num_tasks=5):
         super().__init__()
         print(f"Loading {model_name}...")
-        self.backbone = AutoModel.from_pretrained(model_name)
+        self.backbone = AutoModel.from_pretrained(model_name, attn_implementation="eager")
+        self.backbone.config.output_attentions = True
         
         # modernbert hidden size is usually 768 for base
         hidden_size = self.backbone.config.hidden_size
@@ -19,16 +20,19 @@ class PolymerPredictor(nn.Module):
             nn.Linear(hidden_size // 2, num_tasks)
         )
         
-    def forward(self, input_ids, attention_mask=None, **kwargs):
+    def forward(self, input_ids, attention_mask=None, output_attentions=False, **kwargs):
         # pass through backbone
-        outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask, **kwargs)
+        outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask, output_attentions=output_attentions, **kwargs)
         
         # use CLS token representation (first token)
-        # modernbert might use mean pooling, but CLS is standard for bert
         cls_embedding = outputs.last_hidden_state[:, 0, :]
         
         # predict 5 properties
         predictions = self.head(cls_embedding)
+        
+        if output_attentions:
+            return predictions, outputs.attentions
+            
         return predictions
 
 if __name__ == "__main__":
