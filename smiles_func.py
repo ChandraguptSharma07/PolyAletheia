@@ -1,4 +1,4 @@
-# smiles utilities for rdkit
+# smiles functions for rdkit
 from rdkit import Chem
 
 
