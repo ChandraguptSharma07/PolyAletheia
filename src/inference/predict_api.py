@@ -180,6 +180,13 @@ def run_inference(smiles: str, model_path: str = "best_model_colab.pth") -> None
                     atom_weights = map_tokens_to_atoms(smiles, tokens, token_scores, tokenizer)
                     saliency_data[prop] = atom_weights
                     
+                    # Store raw token scores for validtion/frontend display
+                    # Convert numpy types to Python native types for JSON serialization
+                    saliency_data[f"{prop}_tokens"] = {
+                        "tokens": tokens,
+                        "scores": token_scores.tolist() if isinstance(token_scores, np.ndarray) else token_scores
+                    }
+                    
             except Exception as e:
                 logger.warning(f"Saliency computation failed: {e}")
                 # formatting warning, but proceeding with predictions

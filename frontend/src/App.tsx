@@ -15,6 +15,7 @@ import { Search, Atom, Zap, Activity } from 'lucide-react';
 import axios from 'axios';
 import { MoleculeViewer } from './components/MoleculeViewer';
 import { VerificationPanel } from './components/VerificationPanel';
+import { TokenHeatmap } from './components/TokenHeatmap';
 
 // --- Configuration ---
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -44,6 +45,7 @@ interface BondData {
 interface MoleculeStructure {
   atoms: AtomData[];
   bonds: BondData[];
+  weights?: any;
 }
 
 function App() {
@@ -162,32 +164,39 @@ function App() {
             className="z-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6"
           >
             {/* 3D Molecule Viewer */}
-            <div className="md:col-span-2 h-[600px] bg-glass rounded-2xl border border-white/10 relative overflow-hidden group flex flex-col">
+            {/* Left Column: 3D Model + Token Heatmap */}
+            <div className="md:col-span-2 flex flex-col gap-6">
+              {/* 3D Molecule Viewer */}
+              <div className="h-[500px] bg-glass rounded-2xl border border-white/10 relative overflow-hidden group flex flex-col">
 
-              {/* Feature Selection Dropdown using standard Select for simplicity and reliable z-index */}
-              <div className="absolute top-4 left-4 z-20">
-                <div className="relative group">
-                  <select
-                    value={activeFeature || ""}
-                    onChange={(e) => setActiveFeature(e.target.value || null)}
-                    className="appearance-none bg-black/60 backdrop-blur-md border border-white/20 text-white pl-4 pr-10 py-2 rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500 hover:bg-black/80 transition-colors cursor-pointer"
-                  >
-                    <option value="" className="bg-black text-gray-300">Standard View</option>
-                    <option value="Tg" className="bg-black font-semibold">Highlight: Glass Transition</option>
-                    <option value="Tc" className="bg-black font-semibold">Highlight: Melting Point</option>
-                    <option value="Density" className="bg-black font-semibold">Highlight: Density</option>
-                    <option value="FFV" className="bg-black font-semibold">Highlight: Free Volume</option>
-                    <option value="Rg" className="bg-black font-semibold">Highlight: Gyration Radius</option>
-                  </select>
-                  {/* Custom Arrow */}
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {/* Feature Selection Dropdown */}
+                <div className="absolute top-4 left-4 z-20">
+                  <div className="relative group">
+                    <select
+                      value={activeFeature || ""}
+                      onChange={(e) => setActiveFeature(e.target.value || null)}
+                      className="appearance-none bg-black/60 backdrop-blur-md border border-white/20 text-white pl-4 pr-10 py-2 rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500 hover:bg-black/80 transition-colors cursor-pointer"
+                    >
+                      <option value="" className="bg-black text-gray-300">Standard View</option>
+                      <option value="Tg" className="bg-black font-semibold">Highlight: Glass Transition</option>
+                      <option value="Tc" className="bg-black font-semibold">Highlight: Melting Point</option>
+                      <option value="Density" className="bg-black font-semibold">Highlight: Density</option>
+                      <option value="FFV" className="bg-black font-semibold">Highlight: Free Volume</option>
+                      <option value="Rg" className="bg-black font-semibold">Highlight: Gyration Radius</option>
+                    </select>
+                    {/* Custom Arrow */}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
                   </div>
                 </div>
+
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 opacity-30 pointer-events-none" />
+                <MoleculeViewer structure={structure} activeFeature={activeFeature} />
               </div>
 
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 opacity-30 pointer-events-none" />
-              <MoleculeViewer structure={structure} activeFeature={activeFeature} />
+              {/* Token Heatmap Visualization */}
+              <TokenHeatmap weights={structure?.weights} activeFeature={activeFeature} />
             </div>
 
             {/* Property Cards */}
