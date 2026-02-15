@@ -48,11 +48,14 @@ interface MoleculeStructure {
 
 function App() {
   // State
+  // We keep it simple with local state for now. 
+  // If this grows, we might need a context or Redux, but valid for a prototype.
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PredictionProperties | null>(null);
   const [structure, setStructure] = useState<MoleculeStructure | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeFeature, setActiveFeature] = useState<string | null>(null);
 
   // Handlers
   const handleSearch = async (e: React.FormEvent) => {
@@ -63,14 +66,17 @@ function App() {
     setError(null);
     setResult(null);
     setStructure(null);
+    setActiveFeature(null);
 
     try {
       // Connect to Backend Inference Service
       const response = await axios.post(`${API_BASE_URL}/predict`, { smiles: query });
 
-      if (response.data.properties) {
+      if (response.data.success && response.data.properties) {
         setResult(response.data.properties);
         setStructure(response.data.structure);
+      } else if (response.data.error) {
+        throw new Error(response.data.error);
       } else {
         throw new Error("Invalid response format from server");
       }
@@ -87,12 +93,13 @@ function App() {
     setStructure(null);
     setError(null);
     setQuery('');
+    setActiveFeature(null);
   };
 
   return (
     <div className="min-h-screen bg-void text-white font-sans flex flex-col items-center justify-center p-4 selection:bg-blue-500 selection:text-white overflow-hidden relative">
 
-      {/* Background Glow Effect */}
+      {/* Background Glow Effect - subtle ambiance to match the "Void" theme */}
       <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black z-0 pointer-events-none" />
 
       {/* Main Content Area with Smooth Transitions */}
@@ -155,9 +162,32 @@ function App() {
             className="z-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6"
           >
             {/* 3D Molecule Viewer */}
-            <div className="md:col-span-2 h-[600px] bg-glass rounded-2xl border border-white/10 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 opacity-30" />
-              <MoleculeViewer structure={structure} />
+            <div className="md:col-span-2 h-[600px] bg-glass rounded-2xl border border-white/10 relative overflow-hidden group flex flex-col">
+
+              {/* Feature Selection Dropdown using standard Select for simplicity and reliable z-index */}
+              <div className="absolute top-4 left-4 z-20">
+                <div className="relative group">
+                  <select
+                    value={activeFeature || ""}
+                    onChange={(e) => setActiveFeature(e.target.value || null)}
+                    className="appearance-none bg-black/60 backdrop-blur-md border border-white/20 text-white pl-4 pr-10 py-2 rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500 hover:bg-black/80 transition-colors cursor-pointer"
+                  >
+                    <option value="" className="bg-black text-gray-300">Standard View</option>
+                    <option value="Tg" className="bg-black font-semibold">Highlight: Glass Transition</option>
+                    <option value="Tc" className="bg-black font-semibold">Highlight: Melting Point</option>
+                    <option value="Density" className="bg-black font-semibold">Highlight: Density</option>
+                    <option value="FFV" className="bg-black font-semibold">Highlight: Free Volume</option>
+                    <option value="Rg" className="bg-black font-semibold">Highlight: Gyration Radius</option>
+                  </select>
+                  {/* Custom Arrow */}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 opacity-30 pointer-events-none" />
+              <MoleculeViewer structure={structure} activeFeature={activeFeature} />
             </div>
 
             {/* Property Cards */}

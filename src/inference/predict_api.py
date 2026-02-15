@@ -21,6 +21,7 @@ from rdkit.Chem import AllChem
 
 # Configure logging to stderr to avoid polluting stdout (which is for JSON)
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logging.getLogger("httpx").setLevel(logging.WARNING) # Silence HTTP requests
 logger = logging.getLogger(__name__)
 
 # Add project root to path for module resolution
@@ -30,15 +31,19 @@ sys.path.append(PROJECT_ROOT)
 try:
     from src.models.model import PolymerPredictor
     from src.data.tokenizer import get_tokenizer
+    from src.interpretability.gradients import compute_saliency
+    from src.interpretability.atom_mapping import map_tokens_to_atoms
 except ImportError as e:
     logger.error(f"Failed to import core modules: {e}")
     sys.exit(1)
 
-# Property definintions
-PROPERTIES = ["Tg", "FFV", "Tc", "Density", "Rg"]
+# Property definitions
+# These are the 5 key properties we trained the model on.
+TARGET_PROPERTIES = ["Tg", "FFV", "Tc", "Density", "Rg"]
 
 # Normalization statistics from training set
-# TODO: Load these from a serialized 'scaler.json' in production
+# TODO: Move these to a config file or load from 'scaler.json' eventually.
+# Hardcoding for now to keep the deployment simple.
 NORMALIZATION_STATS = {
     "Tg": {"mean": 100.0, "std": 50.0},
     "FFV": {"mean": 0.15, "std": 0.05},
@@ -47,11 +52,12 @@ NORMALIZATION_STATS = {
     "Rg": {"mean": 10.0, "std": 5.0}
 }
 
+# Standard CPK coloring, plus some custom choices for visibility
 ATOM_COLORS: Dict[str, str] = {
     "C": "#333333", "H": "#FFFFFF", "O": "#FF0000",
     "N": "#0000FF", "S": "#CCCC00", "F": "#00FF00", "Cl": "#00FF00"
 }
-DEFAULT_ATOM_COLOR = "#FF00FF"
+DEFAULT_ATOM_COLOR = "#FF00FF" # Bright pink for unknown atoms to make debugging easier
 
 def get_atom_color(symbol: str) -> str:
     """Returns the hex color for a given atomic symbol."""
@@ -139,6 +145,7 @@ def run_inference(smiles: str, model_path: str = "best_model_colab.pth") -> None
         model = load_predictor(model_path, device)
         
         properties = {}
+        saliency_data = {}
         
         if model:
             # Tokenize & Encode
@@ -158,15 +165,36 @@ def run_inference(smiles: str, model_path: str = "best_model_colab.pth") -> None
                 raw_preds = raw_preds.cpu().numpy()[0]
 
             # Model outputs raw units (based on training MSE ~216)
-            for i, prop in enumerate(PROPERTIES):
+            for i, prop in enumerate(TARGET_PROPERTIES):
                 properties[prop] = float(raw_preds[i])
+                
+            # Compute Saliency (Gradients)
+            try:
+                # We need gradients, so enabling them temporarily if needed? 
+                # actually compute_saliency handles evaluation mode but enables grad on embeddings
+                token_maps, tokens = compute_saliency(model, tokenizer, smiles)
+                
+                # Map to Atoms
+                # token_maps is { "Tg": np.array, ... }
+                for prop, token_scores in token_maps.items():
+                    atom_weights = map_tokens_to_atoms(smiles, tokens, token_scores, tokenizer)
+                    saliency_data[prop] = atom_weights
+                    
+            except Exception as e:
+                logger.warning(f"Saliency computation failed: {e}")
+                # formatting warning, but proceeding with predictions
+                
         else:
             # Fallback values (mean) if model fails to load
-            properties = {p: NORMALIZATION_STATS[p]["mean"] for p in PROPERTIES}
+            properties = {p: NORMALIZATION_STATS[p]["mean"] for p in TARGET_PROPERTIES}
             properties["note"] = "Model not loaded; returning mean stats."
 
         # Generate Structure
         structure = generate_3d_conformer(smiles)
+        
+        # Attach saliency weights to structure if available
+        if structure and saliency_data:
+            structure["weights"] = saliency_data
 
         # Output JSON
         result = {
@@ -175,7 +203,7 @@ def run_inference(smiles: str, model_path: str = "best_model_colab.pth") -> None
             "structure": structure,
             "success": True
         }
-        print(json.dumps(result))
+        print(json.dumps(result), flush=True)
 
     except Exception as e:
         logger.exception("Inference failed")
@@ -183,7 +211,7 @@ def run_inference(smiles: str, model_path: str = "best_model_colab.pth") -> None
             "success": False,
             "error": str(e)
         }
-        print(json.dumps(error_result))
+        print(json.dumps(error_result), flush=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="PolyAletheia Inference Engine")

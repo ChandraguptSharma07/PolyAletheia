@@ -5,7 +5,7 @@ from transformers import AutoModel, AutoConfig
 class PolymerPredictor(nn.Module):
     def __init__(self, model_name="seyonec/ChemBERTa-zinc-base-v1", num_tasks=5):
         super().__init__()
-        print(f"Loading {model_name}...")
+        # print(f"Loading {model_name}...")
         self.backbone = AutoModel.from_pretrained(model_name, attn_implementation="eager")
         self.backbone.config.output_attentions = True
         

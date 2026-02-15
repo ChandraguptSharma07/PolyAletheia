@@ -117,7 +117,7 @@ def compute_saliency(model, tokenizer, smiles):
     mean_saliency = np.mean(all_saliencies, axis=0)
     
     contrastive_maps = {}
-    print("Computing Contrastive Saliency (Diff from Normalized Mean)...")
+    # print("Computing Contrastive Saliency (Diff from Normalized Mean)...") 
     
     for i, prop_name in enumerate(keys):
         # Diff from mean of NORMALIZED maps
