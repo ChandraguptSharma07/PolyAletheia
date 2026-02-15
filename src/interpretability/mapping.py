@@ -1,6 +1,11 @@
 import torch
 import numpy as np
-from tokenizer import get_tokenizer
+import sys
+import os
+# Add project root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from src.data.tokenizer import get_tokenizer
 from transformers import AutoTokenizer
 
 def get_token_map(smiles):

@@ -1,0 +1,75 @@
+/* Global Styles */
+body {
+    background-color: #0e1117;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Hide default streamlit menu */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+
+/* Custom Header */
+h1 {
+    font-weight: 700;
+    background: linear-gradient(90deg, #00f2ff, #bd00ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-bottom: 0.5rem;
+}
+
+h2, h3 {
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+/* Glassmorphism Metric Cards */
+div[data-testid="stMetric"] {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    transition: transform 0.2s;
+}
+
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 242, 255, 0.5);
+}
+
+div[data-testid="stMetricLabel"] {
+    color: #a0a0a0;
+    font-size: 0.9rem;
+}
+
+div[data-testid="stMetricValue"] {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Inputs */
+.stTextInput > div > div > input {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+}
+
+.stButton > button {
+    background: linear-gradient(90deg, #00f2ff, #bd00ff);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    width: 100%;
+    transition: filter 0.2s;
+}
+
+.stButton > button:hover {
+    filter: brightness(1.2);
+    border: none;
+    color: #ffffff;
+}
