@@ -1,75 +1,167 @@
-/* Global Styles */
-body {
-    background-color: #0e1117;
-    color: #ffffff;
-    font-family: 'Inter', sans-serif;
+/* Google Fonts: Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Reset & Base */
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #111111;
+    --text-primary: #ededed;
+    --text-secondary: #a1a1aa;
+    --accent-glow: rgba(56, 189, 248, 0.15);
+    /* Tailwind Sky-400 */
+    --accent-solid: #38bdf8;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --font-inter: 'Inter', sans-serif;
 }
 
-/* Hide default streamlit menu */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-inter);
+}
 
-/* Custom Header */
-h1 {
-    font-weight: 700;
-    background: linear-gradient(90deg, #00f2ff, #bd00ff);
+/* Streamlit container override */
+.stApp {
+    background-color: var(--bg-primary);
+}
+
+/* Hide Streamlit default UI chrome */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+/* ------------- HERO SECTION (LANDING) ------------- */
+
+.hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
+    text-align: center;
+}
+
+.hero-title {
+    font-weight: 800;
+    font-size: 4.5rem;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.1;
 }
 
-h2, h3 {
-    font-weight: 600;
-    color: #e0e0e0;
+.hero-subtitle {
+    font-weight: 400;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    max-width: 600px;
 }
 
-/* Glassmorphism Metric Cards */
+/* ------------- CARDS & GLASS ------------- */
+
 div[data-testid="stMetric"] {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    transition: transform 0.2s;
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 div[data-testid="stMetric"]:hover {
     transform: translateY(-2px);
-    border-color: rgba(0, 242, 255, 0.5);
+    box-shadow: 0 10px 40px -10px var(--accent-glow);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-div[data-testid="stMetricLabel"] {
-    color: #a0a0a0;
-    font-size: 0.9rem;
-}
+/* ------------- INPUTS ------------- */
 
-div[data-testid="stMetricValue"] {
-    color: #ffffff;
-    font-weight: 600;
-}
-
-/* Inputs */
-.stTextInput > div > div > input {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.stTextInput>div>div>input {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
     border-radius: 8px;
+    padding: 12px 16px;
+    font-family: var(--font-inter);
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.stButton > button {
-    background: linear-gradient(90deg, #00f2ff, #bd00ff);
-    color: #ffffff;
+.stTextInput>div>div>input:focus {
+    border-color: var(--accent-solid);
+    box-shadow: 0 0 0 1px var(--accent-solid);
+}
+
+/* ------------- BUTTONS (Standard) ------------- */
+
+.stButton>button {
+    background: #ffffff;
+    color: #000000;
     border: none;
     border-radius: 8px;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     font-weight: 600;
-    width: 100%;
-    transition: filter 0.2s;
+    font-family: var(--font-inter);
+    transition: all 0.2s;
+    letter-spacing: -0.01em;
 }
 
-.stButton > button:hover {
-    filter: brightness(1.2);
+.stButton>button:hover {
+    background: #e5e5e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
     border: none;
-    color: #ffffff;
+    color: #000000;
+}
+
+/* Special styling for "Theory" or Secondary buttons if possible via CSS injection, 
+   but Streamlit buttons are hard to target individually. We rely on layout. */
+
+/* ------------- TABS & MISC ------------- */
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 24px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 50px;
+    white-space: pre-wrap;
+    background-color: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-inter);
+    font-weight: 500;
+    border-radius: 0;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: transparent;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent-solid);
+}
+
+img {
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+/* Navbar container (custom HTML) */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 2rem;
 }

@@ -1,0 +1,25 @@
+{
+  "name": "polyaletheia",
+  "version": "1.0.0",
+  "description": "Polymer property prediction using transformers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"npm run server --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChandraguptSharma07/PolyAletheia.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ChandraguptSharma07/PolyAletheia/issues"
+  },
+  "homepage": "https://github.com/ChandraguptSharma07/PolyAletheia#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

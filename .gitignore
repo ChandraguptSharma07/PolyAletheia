@@ -17,3 +17,10 @@ wandb/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
+
+# Node
+node_modules/
+dist/
+coverage/
+.npm/
+.DS_Store
