@@ -5,3 +5,15 @@ __pycache__/
 instructions.md
 *.zip
 .xalka/
+
+# Model weights (too large for GH free tier)
+*.pth
+*.pt
+*.bin
+*.ckpt
+
+# WandB
+wandb/
+
+# Notebook checkpoints
+.ipynb_checkpoints/

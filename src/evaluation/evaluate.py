@@ -83,6 +83,8 @@ def evaluate_model(model_path="best_model_colab.pth", test_csv="test_split.csv")
                 prop_preds = preds[:, i]
                 
                 # Filter valid
+                # dataset has lots of missing values (NaNs)
+                # so we only evaluate on what we have ground truth for
                 valid_mask = ~np.isnan(prop_targets)
                 
                 if valid_mask.any():

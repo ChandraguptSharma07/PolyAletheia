@@ -99,7 +99,8 @@ def compute_saliency(model, tokenizer, smiles):
     import numpy as np
     
     # PROBLEM: Magnitudes might differ significantly between heads.
-    # We must normalize each property's map to relative [0, 1] importance first.
+    # Tg gradients were massive compared to Density, washing out the heatmap.
+    # So we normalize each property's map to relative [0, 1] importance first.
     normalized_maps = []
     keys = properties # ensure order
     
