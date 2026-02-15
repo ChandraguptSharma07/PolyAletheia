@@ -1,17 +1,17 @@
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from torch.optim import AdamW
-from transformers import get_linear_schedule_with_warmup
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
 import wandb
-from model import PolymerPredictor
-from tokenizer import get_tokenizer
+import sys
+import os
 
-# properties we want to predict
+# quick hack to run from src folder
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from src.models.model import PolymerPredictor
+from src.data.tokenizer import get_tokenizer
+
+# trying to predict these 5 props
+# might add more later if dataset allows
 PROPS = ["Tg", "FFV", "Tc", "Density", "Rg"]
+# print(f"DEBUG: Predicting {len(PROPS)} properties: {PROPS}")
 
 class PolymerDataset(Dataset):
     def __init__(self, csv_path, tokenizer, max_len=128):

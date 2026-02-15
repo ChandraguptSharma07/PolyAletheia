@@ -1,7 +1,13 @@
 import torch
 import numpy as np
-from model import PolymerPredictor
-from tokenizer import get_tokenizer
+import sys
+import os
+
+# Add project root to path to ensure imports work
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from src.models.model import PolymerPredictor
+from src.data.tokenizer import get_tokenizer
 
 def extract_attention(smiles, model_path=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -11,15 +17,25 @@ def extract_attention(smiles, model_path=None):
     model = PolymerPredictor().to(device)
     
     if model_path:
-        # ignore missing keys since we might load a checkpoint that has extra/less keys?
-        # actually, checkpoint should match. But standard safety is good.
         try:
             model.load_state_dict(torch.load(model_path, map_location=device))
             print(f"Loaded weights from {model_path}")
         except FileNotFoundError:
             print(f"Warning: {model_path} not found. Using random weights.")
     else:
-        print("Using initialized weights (untrained)")
+        # try to auto-discover
+        import os
+        candidates = ["best_model_colab.pth", "best_model.pth", "model.pth"]
+        found = False
+        for path in candidates:
+            if os.path.exists(path):
+                print(f"Auto-found weights: {path}")
+                model.load_state_dict(torch.load(path, map_location=device))
+                found = True
+                break
+        
+        if not found:
+            print("No model weights found (checked best_model_colab.pth, etc). Using random weights.")
         
     model.eval()
     

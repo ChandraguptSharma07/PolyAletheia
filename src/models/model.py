@@ -10,9 +10,11 @@ class PolymerPredictor(nn.Module):
         self.backbone.config.output_attentions = True
         
         # modernbert hidden size is usually 768 for base
+        # might change if we swap base models
         hidden_size = self.backbone.config.hidden_size
         
         # simple regression head
+        # maybe try 2 layers?
         self.head = nn.Sequential(
             nn.Linear(hidden_size, hidden_size // 2),
             nn.ReLU(),
@@ -20,9 +22,16 @@ class PolymerPredictor(nn.Module):
             nn.Linear(hidden_size // 2, num_tasks)
         )
         
-    def forward(self, input_ids, attention_mask=None, output_attentions=False, **kwargs):
+    def forward(self, input_ids=None, attention_mask=None, output_attentions=False, inputs_embeds=None, **kwargs):
         # pass through backbone
-        outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask, output_attentions=output_attentions, **kwargs)
+        # We allow passing either input_ids or inputs_embeds (for interpretability)
+        outputs = self.backbone(
+            input_ids=input_ids, 
+            inputs_embeds=inputs_embeds,
+            attention_mask=attention_mask, 
+            output_attentions=output_attentions, 
+            **kwargs
+        )
         
         # use CLS token representation (first token)
         cls_embedding = outputs.last_hidden_state[:, 0, :]
@@ -34,6 +43,14 @@ class PolymerPredictor(nn.Module):
             return predictions, outputs.attentions
             
         return predictions
+
+    def get_embeddings(self, input_ids, **kwargs):
+        """
+        Helper to get embeddings for gradient-based interpretability (Saliency).
+        """
+        # Access the embedding layer of the backbone directly
+        # ChemBERTa (RoBERTa) -> embeddings
+        return self.backbone.embeddings(input_ids)
 
 if __name__ == "__main__":
     # simple test
