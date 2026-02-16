@@ -25,6 +25,9 @@ temp_lammps/
 *.profile
 *.lammps
 *.xyz
+*.polymer
+README.txt
+in.lammps
 
 # Node
 node_modules/
