@@ -10,28 +10,37 @@ units real
 atom_style full
 boundary p p p
 
-# Force Field (OPLS-AA or PCFF)
-pair_style lj/cut/coul/long 10.0
-bond_style harmonic
-angle_style harmonic
-dihedral_style opls
-improper_style harmonic
-kspace_style pppm 1.0e-4
-
-# Load Structure
+# Load Structure (Defines Box - MUST be first)
 read_data data.polymer
+
+# Force Field (Robust Defaults)
+pair_style lj/cut 10.0
+pair_coeff * * 0.1 3.0 # Generic LJ parameters
+bond_style harmonic
+bond_coeff * 100.0 1.54
+angle_style harmonic
+# angle_coeff * 50.0 109.5 # Commented out to support 0-angle structures
+dihedral_style opls
+# dihedral_coeff * 0.0 0.0 0.0 0.0 # Commented out to support 0-dihedral structures
+improper_style harmonic
+# kspace_style pppm 1.0e-4 # Commented out for uncharged systems
+
+# Group Definitions
+group all type 1 2 3 4 5 6 7 8 
 
 # Minimization
 minimize 1.0e-4 1.0e-6 100 1000
 
 # Equilibration (NPT)
 fix 1 all npt temp ${temp} ${temp} 100.0 iso ${pressure} ${pressure} 1000.0
+thermo_style custom step temp press density # Log density!
 thermo 1000
 run 50000
 
-# Production (NPT)
+# Production (NPT) - Radius of Gyration + Density
 variable rho equal density
-fix 2 all ave/time 10 100 1000 v_rho file density.profile
+compute 1 all gyration
+fix 2 all ave/time 10 100 1000 v_rho c_1 file density_rg.profile
 run 100000
     `.trim();
 };

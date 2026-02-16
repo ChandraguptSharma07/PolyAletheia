@@ -14,13 +14,17 @@ export const VerificationPanel = ({ smiles, aiDensity }: VerificationPanelProps)
 
     const handleDownload = async () => {
         try {
-            const res = await axios.post('http://localhost:5000/api/lammps/generate', { smiles });
-            const blob = new Blob([res.data.content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
+            const res = await axios.post('http://localhost:5000/api/lammps/generate', { smiles }, {
+                responseType: 'blob' // Important: Expect binary data
+            });
+            const url = window.URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'in.lammps';
+            a.download = 'lammps_pkg.zip'; // Changed extension
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         } catch (e) {
             console.error("Download failed", e);
         }

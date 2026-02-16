@@ -105,7 +105,10 @@ app.post('/api/predict', async (req: Request<{}, {}, InferenceRequest>, res: Res
 /**
  * LAMMPS Input Generation Endpoint
  */
-app.post('/api/lammps/generate', (req: Request<{}, {}, LammpsGenerateRequest>, res: Response) => {
+/**
+ * LAMMPS Input Generation Endpoint (ZIP Bundle)
+ */
+app.post('/api/lammps/generate', async (req: Request<{}, {}, LammpsGenerateRequest>, res: Response) => {
     const { smiles, temp = 298, pressure = 1 } = req.body;
 
     if (!smiles) {
@@ -113,14 +116,74 @@ app.post('/api/lammps/generate', (req: Request<{}, {}, LammpsGenerateRequest>, r
     }
 
     try {
-        const content = generateInput(smiles, temp, pressure);
-        res.json({
-            filename: 'in.lammps',
-            content: content
+        // 1. Generate in.lammps content
+        const inLammpsContent = generateInput(smiles, temp, pressure);
+
+        // 2. Generate data.polymer (using Python script)
+        // We run the script and capture the output file content
+        const generationScript = path.join(__dirname, '../../src/simulation/generate_structure.py');
+        const tempDir = path.join(__dirname, '../../temp_lammps');
+
+        // Ensure temp dir exists
+        const fs = require('fs');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const uniqueId = Date.now().toString();
+        const dataFilePath = path.join(tempDir, `data_${uniqueId}.polymer`);
+
+        const options: PythonShellOptions = {
+            mode: 'text',
+            pythonPath: PYTHON_PATH,
+            args: [smiles, '--output', dataFilePath]
+        };
+
+        await PythonShell.run(generationScript, options);
+
+        // Read the generated data file
+        const dataPolymerContent = fs.readFileSync(dataFilePath, 'utf8');
+
+        // Clean up temp file
+        fs.unlinkSync(dataFilePath);
+
+        // 3. Create ZIP Archive
+        const archiver = require('archiver');
+        const archive = archiver('zip', {
+            zlib: { level: 9 } // Sets the compression level.
         });
+
+        res.attachment('lammps_input.zip');
+        archive.pipe(res);
+
+        // Append files
+        archive.append(inLammpsContent, { name: 'in.lammps' });
+        archive.append(dataPolymerContent, { name: 'data.polymer' });
+
+        // Add a Readme
+        const readmeContent = `
+PolyAletheia LAMMPS Simulation Package
+--------------------------------------
+Molecule: ${smiles}
+Temperature: ${temp} K
+Pressure: ${pressure} atm
+
+Instructions:
+1. Extract this ZIP file.
+2. Run command: lmp -in in.lammps
+   (Or 'wsl lmp -in in.lammps' on Windows)
+3. Upload 'log.lammps' back to the Web App to verify.
+        `.trim();
+        archive.append(readmeContent, { name: 'README.txt' });
+
+        await archive.finalize();
+
     } catch (err) {
         console.error("LAMMPS Generation Error:", err);
-        res.status(500).json({ error: "Failed to generate LAMMPS input." });
+        // If headers already sent (streaming), we can't send JSON error
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Failed to generate LAMMPS input package." });
+        }
     }
 });
 

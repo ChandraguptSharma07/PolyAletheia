@@ -18,6 +18,14 @@ wandb/
 # Notebook checkpoints
 .ipynb_checkpoints/
 
+# Simulation Artifacts
+temp_lammps/
+*.log
+*.data
+*.profile
+*.lammps
+*.xyz
+
 # Node
 node_modules/
 dist/
